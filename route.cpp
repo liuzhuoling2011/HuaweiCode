@@ -10,8 +10,8 @@
 using namespace std;
 
 struct Edge{
-    Edge(int i, int s, int e, int w){index = i; start = s; end = e; weight = w;}
-    int index;
+    Edge(unsigned short i, int s, int e, int w){index = i; start = s; end = e; weight = w;}
+    unsigned short index;
     int start;
     int end;
     int weight;
@@ -29,6 +29,16 @@ vector< vector<Edge> > totalPaths;
 int startNode;
 int endNode;
 int MIN_WEIGHT = 100000;
+
+bool compare(const Edge &e1, const Edge &e2){   //加入贪心算法的思路,优先访问V1中的元素和weight较小的元素
+    int ve1 = 1;
+    int ve2 = 1;
+    for(int i=0;i<V1.size();i++){
+        if(e1.end == V1[i]) ve1 = 0.2;
+        if(e2.end == V1[i]) ve2 = 0.2;
+    }
+    return ve1*e1.weight < ve2*e2.weight;
+}
 
 int sumWeight( vector<Edge> path ){
     int sum = 0;
@@ -88,7 +98,6 @@ void DFS(Edge thisEdge) {
         }
     }
 
-
 }
 
 //你要完成的功能总入口
@@ -96,11 +105,6 @@ void search_route(char *topo[5000], int edge_num, char *demand)
 {
 
     int index, start, end, weight;
-
-//    unsigned short result[] = {2, 6, 3};//示例中的一个解
-//
-//    for (int i = 0; i < 3; i++)
-//        record_result(result[i]);
 
     for(int i = 0; i < edge_num; i++) {
         sscanf(topo[i], "%d,%d,%d,%d", &index, &start, &end, &weight);
@@ -118,14 +122,18 @@ void search_route(char *topo[5000], int edge_num, char *demand)
         }
     }
 
-    char demandV[500];
+    for(it = mGraph.begin(); it != mGraph.end(); it++){ //对于每个点,将它next点的集合按重要性排序
+        sort(it->second.begin(),it->second.end(),compare);
+    }
+
+    char demandV[600];
     int tempNode = 0;
     sscanf(demand,"%d,%d,%s",&startNode,&endNode,demandV);
 
-    for(int i = 0;i <= strlen(demandV);i++){
+    for(int i = 0;;i++){
         if (demandV[i] == '\0'){
             V1.push_back(tempNode);
-            tempNode = 0;
+            break;
         }
         if (demandV[i] != '|'){
             tempNode = tempNode*10 + demandV[i]-'0';
@@ -143,6 +151,13 @@ void search_route(char *topo[5000], int edge_num, char *demand)
         DFS(startV[i]);
         paths.pop_back();
     }
+
+    vector<Edge> resultPath = totalPaths[totalPaths.size()-1];
+    for (int i = 0; i < resultPath.size(); i++){
+        record_result(resultPath[i].index);
+    }
+
+
 
     cout<<"totalPath中最后一个path即是最优";
 }

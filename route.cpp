@@ -27,6 +27,7 @@ map< int, vector<Edge> >::iterator it;
 vector<int> V1;
 vector<Edge> paths;
 vector< vector<Edge> > totalPaths;
+vector<int> indexCorrectpath;
 
 int startNode;
 int endNode;
@@ -61,7 +62,8 @@ void DFS(Edge thisEdge) {
 
     if(thisEdge.end == endNode) {
         vector<Edge> path(paths);
-        totalPaths.push_back(path);
+        if(isContain(path,V1))
+            totalPaths.push_back(path);
         return;
     }
 
@@ -134,12 +136,8 @@ void search_route(char *topo[5000], int edge_num, char *demand)
         paths.pop_back();
     }
 
-    for( int i=0; i < totalPaths.size(); i++){
-        if( isContain(totalPaths[i],V1)){
-            //Todo
-            cout << "在totalPaths中序号为 "<< i << " 的序列符合要求" << endl;
-        }
-    }
+
+    cout<<"hello";
 }
 
 

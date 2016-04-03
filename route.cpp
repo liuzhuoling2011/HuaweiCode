@@ -20,7 +20,7 @@ struct Edge{
 vector< vector<Edge> > Graph;   //vector临接表
 
 map< int, vector<Edge> > mGraph;    //map临接表
-map< int, bool> isVisited;
+map< int, bool> isVisited;  //判断是否访问过
 map< int, vector<Edge> >::iterator it;
 
 
@@ -39,27 +39,31 @@ bool Valid(int current) {
         return false;
 }
 
-void DFS(int score, Edge thisEdge) {//Deep-First-Search to find the best score
+void DFS(Edge thisEdge) {
 
-    int result = score + thisEdge.weight;
+    paths.push_back(thisEdge);
+    isVisited.find(thisEdge.end)->second = true;
+
+    if(thisEdge.end == endNode) {
+        vector<Edge> path(paths);
+        if (paths.size() ==1) paths.pop_back();
+        if (isVisited.find(endNode)->second == true) isVisited.find(endNode)->second = false;
+        totalPaths.push_back(path);
+        return;
+    }
 
     if(mGraph.find(thisEdge.end) == mGraph.end()) return;
 
     vector<Edge> nextEdge(mGraph.find(thisEdge.end)->second);
 
     for (int i = 0; i < nextEdge.size(); i++) {
-        currentNode = nextEdge[i].start;
+        currentNode = nextEdge[i].end;
         if (Valid(currentNode)) {
-            isVisited.find(currentNode)->second = true;
-            paths.push_back(nextEdge[i]);
-            DFS(score + nextEdge[i].weight, nextEdge[i]);
+//            isVisited.find(currentNode)->second = true;
+            DFS(nextEdge[i]);
             paths.pop_back();
             isVisited.find(currentNode)->second = false;
         }
-    }
-    if(thisEdge.end == endNode) {
-        totalPaths.push_back(paths);
-        return;
     }
 }
 
@@ -84,11 +88,10 @@ void search_route(char *topo[5000], int edge_num, char *demand)
             vector<Edge> neighbor;
             neighbor.push_back( Edge(index, start, end, weight) );
             mGraph.insert(make_pair(start, neighbor));
-        }
-    }
 
-    for (it = mGraph.begin(); it != mGraph.end(); it++) {
-        isVisited.insert(make_pair(it->first, false));
+            isVisited.insert(make_pair(start, false));
+            isVisited.insert(make_pair(end, false));   //有些点没有指出去的边,也要初始化
+        }
     }
 
     char demandV[500];
@@ -109,9 +112,10 @@ void search_route(char *topo[5000], int edge_num, char *demand)
 
     }
 
-    vector<Edge> startV = mGraph.find(start)->second;
+    isVisited.find(startNode)->second = true;
+    vector<Edge> startV = mGraph.find(startNode)->second;
     for (int i = 0; i < startV.size(); i++) {
-        DFS(0, startV[i]);
+        DFS(startV[i]);
     }
 
     cout<<"hello";

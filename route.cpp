@@ -34,8 +34,8 @@ bool compare(const Edge &e1, const Edge &e2){   //加入贪心算法的思路,�
     int ve1 = 1;
     int ve2 = 1;
     for(int i=0;i<V1.size();i++){
-        if(e1.end == V1[i]) ve1 = 0.2;
-        if(e2.end == V1[i]) ve2 = 0.2;
+        if(e1.end == V1[i]) ve1 = 0.5;
+        if(e2.end == V1[i]) ve2 = 0.5;
     }
     return ve1*e1.weight < ve2*e2.weight;
 }
@@ -50,10 +50,10 @@ int sumWeight( vector<Edge> path ){
 
 bool isContain( vector<Edge> path, vector<int> V){  //Derek
     bool flag;
-    for(vector<int>::iterator i = V.begin(); i < V.end(); i++) {
+    for(int i = 0; i < V.size(); i++) {
         flag = false;
-        for(vector<Edge>::iterator j = path.begin(); j < path.end(); j++) {
-            if (j->end == *i) {
+        for(int j = 0; j < path.size(); j++) {
+            if (path[j].end == V[i]) {
                 flag = true;
                 break;
             }
@@ -72,17 +72,18 @@ bool Valid(int current) {
         return false;
 }
 
-void DFS(Edge thisEdge) {
+bool DFS(Edge thisEdge) {
 
-    if(mGraph.find(thisEdge.end) == mGraph.end() && thisEdge.end != endNode) return;   //说明它不是终点也没有指出去的边了
+    if(mGraph.find(thisEdge.end) == mGraph.end() && thisEdge.end != endNode) return false;   //说明它不是终点也没有指出去的边了
 
     if(thisEdge.end == endNode) {
         vector<Edge> path(paths);
         if(isContain(path,V1) && sumWeight(path) < MIN_WEIGHT){ //进一步增加条件约束,获得更精简的符合要求的path集合,最后一个即为最优解
             MIN_WEIGHT = sumWeight(path);
             totalPaths.push_back(path);
+            return true;
         }
-        return;
+        return false;
     }
 
     vector<Edge> nextEdge(mGraph.find(thisEdge.end)->second);
@@ -92,7 +93,7 @@ void DFS(Edge thisEdge) {
         if (Valid(currentNode)) {
             isVisited.find(currentNode)->second = true;
             paths.push_back(nextEdge[i]);
-            DFS(nextEdge[i]);
+            if( DFS(nextEdge[i]) ) return true;
             paths.pop_back();
             isVisited.find(currentNode)->second = false;
         }
@@ -147,19 +148,25 @@ void search_route(char *topo[5000], int edge_num, char *demand)
     isVisited.find(startNode)->second = true;   //标记起点
     vector<Edge> startV = mGraph.find(startNode)->second;   //将起点压栈
     for (int i = 0; i < startV.size(); i++) {   //遍历起点指向节点,准备DFS深度搜索————这里可以加上最大限制(最少出度的点优先搜索)优化
+        cout << "processing " << i+1 << " of " << startV.size()<<endl;
         paths.push_back(startV[i]);
         DFS(startV[i]);
         paths.pop_back();
     }
 
+    int testsum = 0;
+    if (totalPaths.size() == 0) {
+        cout<<"NA"<<endl;
+        return;
+    }
     vector<Edge> resultPath = totalPaths[totalPaths.size()-1];
     for (int i = 0; i < resultPath.size(); i++){
         record_result(resultPath[i].index);
+        testsum += resultPath[i].weight;
     }
 
+    cout<< testsum << endl;
 
-
-    cout<<"totalPath中最后一个path即是最优";
 }
 
 

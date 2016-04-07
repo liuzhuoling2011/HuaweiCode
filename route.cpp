@@ -5,6 +5,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <random>
 #include <algorithm>
 
 using namespace std;
@@ -34,8 +35,8 @@ bool compare(const Edge &e1, const Edge &e2){   //加入贪心算法的思路,�
     int ve1 = 1;
     int ve2 = 1;
     for(int i=0;i<V1.size();i++){
-        if(e1.end == V1[i]) ve1 = 0.5;
-        if(e2.end == V1[i]) ve2 = 0.5;
+        if(e1.end == V1[i]) ve1 = 0.4;
+        if(e2.end == V1[i]) ve2 = 0.4;
     }
     return ve1*e1.weight < ve2*e2.weight;
 }
@@ -46,6 +47,14 @@ int sumWeight( vector<Edge> path ){
         sum += path[i].weight;
     }
     return sum;
+}
+
+bool inV1(int num){
+    for(int i=0; i< V1.size(); i++){
+        if(num == V1[i])
+            return true;
+    }
+    return false;
 }
 
 bool isContain( vector<Edge> path, vector<int> V){  //Derek
@@ -80,6 +89,11 @@ bool DFS(Edge thisEdge) {
         vector<Edge> path(paths);
         if(isContain(path,V1) && sumWeight(path) < MIN_WEIGHT){ //进一步增加条件约束,获得更精简的符合要求的path集合,最后一个即为最优解
             MIN_WEIGHT = sumWeight(path);
+            cout << path[0].start;
+            for(int i=0; i<path.size();i++){
+                cout<< "->" << path[i].end;
+            }
+            cout<< "total weight is "<< MIN_WEIGHT<< endl;
             totalPaths.push_back(path);
             return true;
         }
@@ -93,19 +107,30 @@ bool DFS(Edge thisEdge) {
         if (Valid(currentNode)) {
             isVisited.find(currentNode)->second = true;
             paths.push_back(nextEdge[i]);
-            if( DFS(nextEdge[i]) ) return true;
+            if( DFS(nextEdge[i]) ){
+                paths.pop_back();
+                if(inV1(currentNode)){  //进行剪枝
+                    isVisited.find(currentNode)->second = false;    //当前点为V1中的点,不剪
+                }else{  //当前点不为V1中的点,60%的概率剪枝
+                    int random = rand()%100;
+                    if(random > 60)
+                        isVisited.find(currentNode)->second = false;
+                }
+                return true;
+            }
             paths.pop_back();
             isVisited.find(currentNode)->second = false;
         }
     }
-
+    return false;
 }
 
 //你要完成的功能总入口
 void search_route(char *topo[5000], int edge_num, char *demand)
 {
 
-    int index, start, end, weight;
+    int index, start, end, weight, charge_weight;
+    srand(time(0));
 
     for(int i = 0; i < edge_num; i++) {
         sscanf(topo[i], "%d,%d,%d,%d", &index, &start, &end, &weight);
